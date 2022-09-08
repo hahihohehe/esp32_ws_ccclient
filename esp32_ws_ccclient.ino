@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <WebSocketsClient.h>
 #include <Adafruit_NeoPixel.h>
+#include "DisplayTask.h"
 
 #include "wifi_credentials.h"
 
@@ -13,57 +14,12 @@ WebSocketsClient webSocket;
 const char *ssid = _SSID;
 const char *password = _PASSWORD;
 
-unsigned long messageInterval = 5000;
 bool connected = false;
 
-char charmap[] = {
-  0,   // a
-  1,   // b
-  2,   // c
-  3,   // d
-  4,   // e
-  5,   // f
-  6,   // g
-  7,   // h
-  8,   // i
-  9,   // j
-  10,  // k
-  11,  // l
-  12,  // m
-  13,  // n
-  14,  // o
-  15,  // p
-  16,  // q
-  17,  // r
-  18,  // s
-  19,  // t
-  20,  // u
-  21,  // v
-  22,  // w
-  23,  // x
-  24,  // y
-  25   // z
-};
-
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_COUNT, PIN, NEO_GRB + NEO_KHZ800);
-uint32_t color = strip.Color(255, 255, 200);
+DisplayTask display{strip};
 
 #define DEBUG_SERIAL Serial
-
-void showChar(uint8_t c) {
-  int idx = -1;
-  if (c > 'A' && c < 'Z')
-    idx = c - 'A';
-  if (c > 'a' && c < 'z')
-    idx = c - 'a';
-
-  strip.clear();
-  strip.setPixelColor(charmap[idx], color);
-  strip.show();
-}
-
-void showText(uint8_t *text) {
-}
 
 void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
 
@@ -84,7 +40,8 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
       break;
     case WStype_TEXT:
       DEBUG_SERIAL.printf("[WSc] RECEIVED: %s\n", payload);
-      showText(payload);
+      DEBUG_SERIAL.printf("length: %i\n", length);
+      display.displayText(payload);
       break;
     case WStype_BIN:
     case WStype_PING:
@@ -124,9 +81,11 @@ void setup() {
 
   // event handler
   webSocket.onEvent(webSocketEvent);
-}
 
+  strip.begin();
+}
 
 void loop() {
   webSocket.loop();
+  display.update();
 }
