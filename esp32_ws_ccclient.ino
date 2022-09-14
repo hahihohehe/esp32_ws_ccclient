@@ -77,7 +77,7 @@ void setup() {
   DEBUG_SERIAL.print("Local IP: ");
   DEBUG_SERIAL.println(WiFi.localIP());
   // server address, port and URL
-  webSocket.begin("192.168.178.44", 8080, "/ws/0001");
+  webSocket.beginSSL("niklas.freemine.de", 443, "/wsrelay/ws/0001");
 
   // event handler
   webSocket.onEvent(webSocketEvent);
